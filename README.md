@@ -37,21 +37,21 @@ parameter guaranteed to be unique.
 
 
 -The required body layout for POST and PUT looks like this:
-  {
+  `{
     "name": {str},
     "phone": {10 digit num},
     "address": {str},
     "city": {str},
     "state": {str},
     "zip": {<10 digit num}
-  }
+  }`
 
   for example:
-  {
+  `{
     "name": "Bradley Chapman",
     "phone": 5461768427,
     "address": "574 Lancaster Avenue",
     "city": "Bancroft",
     "state": "Nevada",
     "zip": 7036
-  }
+  }`
