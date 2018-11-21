@@ -14,7 +14,7 @@ Take home interview challenge: Create an API using Elasticsearch
             /contact?page={int}&pageSize={int}
 
     Partial query:
-        /contact?name={ *txt* }&phone={ *num* }&address={ *num+txt* }&city={ *txt* }&state={ *txt* }&zip={ *num* }
+        /contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num }
 
 **POST**:
 
@@ -23,12 +23,12 @@ Take home interview challenge: Create an API using Elasticsearch
 
 **PUT**:
 
-    /contact?name={ *txt* }&phone={ *num* }&address={ *num+txt* }&city={ *txt* }&state={ *txt* }&zip={ *num* } 
+    /contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num } 
         + Body
 
 **DELETE**
 
-    >/contact?name={ *txt* }&phone={ *num* }&address={ *num+txt* }&city={ *txt* }&state={ *txt* }&zip={ *num* } 
+    /contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num } 
 
 ---
 
@@ -38,6 +38,7 @@ parameter guaranteed to be unique.
 
 
  - The required body layout for POST and PUT looks like this:
+
 
 
   ```
