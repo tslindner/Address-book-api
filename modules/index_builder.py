@@ -3,6 +3,9 @@ import json
 from pprint import pprint
 
 def create_index(es, index_name):
+    # es         = Elasticsearch connection
+    # index_name = name of the index being created
+
     created = False
     # index settings
     settings = {
@@ -48,6 +51,9 @@ def create_index(es, index_name):
 
 
 def get_id(es, param_dict, index_name):
+    # es         = Elasticsearch connection
+    # param_dict = dictionary of parameters either passed by URL or hardcoded for specific tasks, like the mock data generator
+    # index_name = name of the index being used
 
     query_list = []
 
@@ -66,6 +72,7 @@ def get_id(es, param_dict, index_name):
 
 
 def body_cleaner(body):
+    # body = dictionary of record data that needs to be edited to match all other data, and play nice with Elasticsearch
 
     formatting = True
 
@@ -106,6 +113,9 @@ def body_cleaner(body):
 # Populate db with mock data
 
 def populate_index(path, es, index_name):
+    # path       = path to generated.json, the mock data used for testing
+    # es         = Elasticsearch connection
+    # index_name = name of the index being used
     counter = 0
     with open(path) as f:
         data = json.load(f)
