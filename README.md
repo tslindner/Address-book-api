@@ -6,6 +6,7 @@ API DOCs:
   
 
 **GET**:
+
     Full query:
         No pagination:
             >/contact
@@ -16,14 +17,17 @@ API DOCs:
         >/contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num }
 
 **POST**:
+
     >/contact
         + Body
 
 **PUT**:
+
     >/contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num } 
         + Body
 
 **DELETE**
+
     >/contact?name={ txt }&phone={ num }&address={ num+txt }&city={ txt }&state={ txt }&zip={ num } 
 
 
