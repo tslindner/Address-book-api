@@ -68,43 +68,78 @@ create_index(es)
 
 def body_cleaner(body):
 
-    name = body['name']
-    phone = body['phone']
-    address = body['address']
-    city = body['city']
-    state = body['state']
-    _zip = body['zip']
+    formatting = True
 
-    name = name.lower().replace(" ", "")
-    address = address.lower().replace(" ", "")
-    city = city.lower().replace(" ", "")
-    state = state.lower().replace(" ", "")
-    phone = str(phone)
-    _zip = str(_zip)
+    keys_to_be_deleted = []
 
-    if (
-        name.isalpha()  == False or
-        len(phone)      != 10    or
-        city.isalpha()  == False or
-        state.isalpha() == False or
-        len(_zip)       >  10
-    ):
-        return "Input improperly formatted"
+    for key, value in body.items():
+        if body[key] is None:
+            keys_to_be_deleted.append(key)
+            continue
+        elif key == 'phone':
+            body[key] = str(body[key])
+            if len(body['phone']) != 10:
+                formatting = False
+        elif key == 'zip':
+            body[key] = str(body[key])
+            if len(body['zip'])   >  10:
+                formatting = False
+        else:
+            body[key] = body[key].lower().replace(' ', '')
+            if body[key].isalpha() == False:
+                formatting = False
+
+    for key in keys_to_be_deleted:
+        del body[key]
+
+    if formatting == False:
+        return 'Input was formatted incorrectly'
 
     else:
-        body['name'] = name
-        body['phone'] = phone
-        body['address'] = address
-        body['city'] = city
-        body['state'] = state
-        body['zip'] = _zip
+        return body
+    
 
-    return body
+
+
+    # name = body['name']
+    # phone = body['phone']
+    # address = body['address']
+    # city = body['city']
+    # state = body['state']
+    # _zip = body['zip']
+
+    # name = name.lower().replace(" ", "")
+    # address = address.lower().replace(" ", "")
+    # city = city.lower().replace(" ", "")
+    # state = state.lower().replace(" ", "")
+    # phone = str(phone)
+    # _zip = str(_zip)
+
+    # if (
+    #     name.isalpha()  == False or
+    #     len(phone)      != 10    or
+    #     city.isalpha()  == False or
+    #     state.isalpha() == False or
+    #     len(_zip)       >  10
+    # ):
+    #     return "Input improperly formatted"
+
+    # else:
+    #     body['name'] = name
+    #     body['phone'] = phone
+    #     body['address'] = address
+    #     body['city'] = city
+    #     body['state'] = state
+    #     body['zip'] = _zip
+
+    # return body
     
 
 
 def get_id(name):
     res = es.search(index=index_name, body={"query": {"term": {"name": name}}})
+    print(name)
+    pprint(res)
     if res['hits']['total'] > 0:
         return res['hits']['hits'][0]['_id']
     else:
@@ -203,36 +238,70 @@ def get_name(name):
 app = Flask(__name__)
 api = Api(app)
 
+
 @app.route('/contacts',methods = ['GET', 'POST', 'PUT', 'DELETE'])
 def home():
-    name      = request.args.get('name') 
-    page_size = request.args.get('pageSize') 
+
+    param_dict =    body_cleaner(dict(  
+                    name      = request.args.get('name'),
+                    phone     = request.args.get('phone'),
+                    address   = request.args.get('address'),
+                    city      = request.args.get('city'),
+                    state     = request.args.get('state'),
+                    zip       = request.args.get('zip')))
+
+    if isinstance(param_dict, str):
+        return param_dict
+
+    # query     = request.args.get('query') I don't understand how to get this to work.
+    page_size = request.args.get('pageSize')
     page      = request.args.get('page') 
-    query     = request.args.get('query') 
-    body      = request.get_json()
+    body      = body_cleaner(request.get_json())
+
+    try:
+        page_size = int(page_size)
+        page      = int(page)
+    except Exception as ex:
+        print('page and page_size must be integers')
+        return 'page and page_size must be integers'
+
+    if page_size is None:
+        page_size = 50
+
+    if page is None:
+        page = 1
 
 
+    if request.method == 'GET' and len(param_dict.items()) == 0:
 
-    name = name.lower().replace(" ", "")
-    
+        match_all_doc = {
+                'size' : 10000,
+                'query': {
+                    'match_all' : {}
+                }
+            }
+        res = es.search(index=index_name, doc_type='contacts', body=match_all_doc)
 
-    if request.method == 'GET' and query:
-        get_query = dict(page_size = page_size,
-                        page      = page,
-                        query     = query
-        )
-        print('this is a get query')
+        first_doc = page_size * (page - 1)
+        last_doc  = page_size * page
 
-        # res = es.search(index=index_name, body=get_query)
-        # return jsonify(res)
+        return jsonify(res['hits']['hits'][first_doc:last_doc])
 
-    elif request.method == 'GET' and name:
-        res = es.search(index=index_name, body={"query": {"match": {"name": f"{name}"}}})
+    elif request.method == 'GET':
+        query_list = []
+
+        for key, value in param_dict.items():
+            if param_dict[key]:
+                query_list.append({"term": {key : value}})
+
+        res = es.search(index=index_name, body={"query": {"bool": {"should": query_list}}})
+        pprint(res)
         return jsonify(res)
 
     elif request.method == 'POST' and body:
         name_id = get_id(body['name'])
-        if name_id:
+        print(name_id)
+        if name_id == False:
             try:
                 post_outcome = es.index(index=index_name, doc_type='contacts', body=body)
                 return "Post Successfull"
@@ -288,7 +357,7 @@ def home():
 with open('resources/generated.json') as f:
     data = json.load(f)
 
-    for i in data[0:5]:
+    for i in data:
         name = i['name']
         phone = i['phone']
         address = i['address']
