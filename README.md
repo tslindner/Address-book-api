@@ -2,7 +2,7 @@
 Take home interview challenge: Create an API using Elasticsearch
 
 
-API DOCs:
+ ## API DOCs:
   
 
 **GET**:
@@ -39,7 +39,6 @@ parameter guaranteed to be unique.
 
  - The required body layout for POST and PUT looks like this:
 
----
 
   ```
   {
