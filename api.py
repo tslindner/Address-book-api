@@ -11,6 +11,23 @@ import json
 
 from modules.index_builder import create_index, get_id, body_cleaner, populate_index
 
+# def get_id(es, param_dict, index_name):
+
+#     query_list = []
+
+#     for key, value in param_dict.items():
+#         if param_dict[key]:
+#             query_list.append({"term": {key : value}})
+
+#     res = es.search(index=index_name, body={"query": {"bool": {"should": query_list}}})
+
+#     if res['hits']['total'] and res['hits']['total'] > 0:
+#         _id  = res['hits']['hits'][0]['_id']
+#         name = res['hits']['hits'][0]['_source']['name']
+#         return _id, name
+#     else:
+#         return False
+
 # Initialize elasticsearch
 # port = input('Enter elasticsearch port number (default 9200):')
 # if port == '':
@@ -22,180 +39,9 @@ es = Elasticsearch(HOST='http://localhost', PORT=port)
 index_name = 'address_book'
 
 
-
 es.indices.delete(index_name)
 create_index(es, index_name)
 populate_index('resources/generated.json', es, index_name)
-
-# def body_cleaner(body):
-
-#     formatting = True
-
-#     keys_to_be_deleted = []
-
-#     for key, value in body.items():
-#         if body[key] is None:
-#             keys_to_be_deleted.append(key)
-#             continue
-#         elif key == 'phone':
-#             body[key] = str(body[key])
-#             if len(body['phone']) != 10:
-#                 formatting = False
-#         elif key == 'zip':
-#             body[key] = str(body[key])
-#             if len(body['zip'])   >  10:
-#                 formatting = False
-#         elif key == 'address':
-#             body[key] = body[key].lower().replace(' ','')
-#             if body[key].isalnum() == False:
-#                 formatting = False
-#         else:
-#             body[key] = body[key].lower().replace(' ', '')
-#             if body[key].isalpha() == False:
-#                 formatting = False
-
-#     for key in keys_to_be_deleted:
-#         del body[key]
-
-#     if formatting == False:
-#         pprint(body)
-#         return 'Input was formatted incorrectly'
-
-#     else:
-#         return body
-    
-
-
-
-    # name = body['name']
-    # phone = body['phone']
-    # address = body['address']
-    # city = body['city']
-    # state = body['state']
-    # _zip = body['zip']
-
-    # name = name.lower().replace(" ", "")
-    # address = address.lower().replace(" ", "")
-    # city = city.lower().replace(" ", "")
-    # state = state.lower().replace(" ", "")
-    # phone = str(phone)
-    # _zip = str(_zip)
-
-    # if (
-    #     name.isalpha()  == False or
-    #     len(phone)      != 10    or
-    #     city.isalpha()  == False or
-    #     state.isalpha() == False or
-    #     len(_zip)       >  10
-    # ):
-    #     return "Input improperly formatted"
-
-    # else:
-    #     body['name'] = name
-    #     body['phone'] = phone
-    #     body['address'] = address
-    #     body['city'] = city
-    #     body['state'] = state
-    #     body['zip'] = _zip
-
-    # return body
-    
-
-
-# def get_id(name):
-#     res = es.search(index=index_name, body={"query": {"term": {"name": name}}})
-#     if res['hits']['total'] > 0:
-#         return res['hits']['hits'][0]['_id']
-#     else:
-#         return False
-
-# def query_handler(get_query):
-#     res = es.search(index=index_name, body=get_query)
-#     return res
-
-# def post_name(doc):
-
-#     name = doc['name']
-#     phone = doc['phone']
-#     address = doc['address']
-#     city = doc['city']
-#     state = doc['state']
-#     _zip = doc['zip']
-
-#     name = name.lower().replace(" ", "")
-#     address = address.lower().replace(" ", "")
-#     city = city.lower().replace(" ", "")
-#     state = state.lower().replace(" ", "")
-#     phone = str(phone)
-#     _zip = str(_zip)
-
-#     if (
-#         name.isalpha()  == False or
-#         len(phone)      != 10    or
-#         city.isalpha()  == False or
-#         state.isalpha() == False or
-#         len(_zip)       >  10
-#     ):
-#         return "Input improperly formatted"
-
-#     else:
-#         doc['name'] = name
-#         doc['phone'] = phone
-#         doc['address'] = address
-#         doc['city'] = city
-#         doc['state'] = state
-#         doc['zip'] = _zip
-
-
-
-#     name_id = get_id(doc['name'])
-#     if name_id == False:
-#         try:
-#             post_outcome = es.index(index=index_name, doc_type='contacts', body=doc)
-#             return True, post_outcome
-#         except Exception as ex:
-#             print('Error in indexing data')
-#             print(str(ex))
-#             return False, f'Something went wrong, exception thrown'
-#     else:
-#         return False, 'Name unavailable'
-
-# def get_name(name):
-#     res = es.search(index=index_name, body={"query": {"match": {"name": f"{name}"}}})
-#     return res
-
-# def put_doc(name, doc):
-#     doc['name'] = doc['name'].lower().replace(" ", "")
-#     name_available = name_check(name)
-#     print('made it here')
-#     if name_available == True:
-#         return 'No entry by that name exists'
-#     else:
-#         try:
-#             initial_entry = get_name(name)
-#             pprint(initial_entry)
-#             initial_id = initial_entry['hits']['hits'][0]['_id']
-#             pprint(initial_id)
-#             res = es.update(index=index_name, doc_type='contacts', id=initial_id, body={"doc": doc})
-#             pprint(res)
-#             return f'Successfully updated {name}'
-#         except Exception as ex:
-#             print(str(ex))
-#             return 'Something went wrong, exception thrown'
-
-# def delete_doc(name):
-#     name_available = name_check(name)
-#     if name_available == True:
-#         return 'No entry by that name exists'
-#     else:
-#         try:
-#             initial_entry = get_name(name)
-#             initial_id = initial_entry['hits']['hits'][0]['_id']
-#             es.delete(index=index_name, doc_type='contacts', id=initial_id)
-#             return f'Successfully deleted {name}'
-#         except Exception as ex:
-#             print(str(ex))
-#             return 'Something went wrong, exception thrown'        
 
 
 
@@ -211,8 +57,8 @@ def restart():
     return 'Index populated'
 
 
-@app.route('/contacts',methods = ['GET', 'POST', 'PUT', 'DELETE'])
-def contacts():
+@app.route('/contact',methods = ['GET', 'POST', 'PUT', 'DELETE'])
+def contact():
 
     param_dict =    body_cleaner(dict(  
                     name      = request.args.get('name'),
@@ -227,8 +73,10 @@ def contacts():
 
     try:
         body = body_cleaner(request.get_json())
-    except:
+    except Exception as ex:
+        body = None
         print('No JSON body included')
+        print(str(ex))
 
     # query     = request.args.get('query') I don't understand how to get this to work.
     page_size = request.args.get('pageSize')
@@ -239,17 +87,17 @@ def contacts():
         try:
             page_size = int(page_size)
         except Exception as ex:
-            print('page and page_size must be integers')
-            return 'page and page_size must be integers'
+            print('page and pageSize must be integers')
+            return 'page and pageSize must be integers'
     else:
-        page_size = 50
+        page_size = 10000
 
     if page:
         try:
             page = int(page)
         except Exception as ex:
-            print('page and page_size must be integers')
-            return 'page and page_size must be integers'
+            print('page and pageSize must be integers')
+            return 'page and pageSize must be integers'
     else:
         page = 1
 
@@ -261,15 +109,14 @@ def contacts():
                     'match_all' : {}
                 }
             }
-        res = es.search(index=index_name, doc_type='contacts', body=match_all_doc)
-
-        print(page)
+        res = es.search(index=index_name, doc_type='contact', body=match_all_doc)
 
         first_doc = page_size * (page - 1)
         last_doc  = page_size * page
 
-        return jsonify(res['hits']['hits'][first_doc:last_doc])
-        # return jsonify(res)
+
+        res = [doc['_source'] for doc in res['hits']['hits'] if isinstance(res['hits']['hits'], list)]
+        return jsonify(res[first_doc:last_doc])
 
 
     elif request.method == 'GET':
@@ -280,58 +127,61 @@ def contacts():
                 query_list.append({"term": {key : value}})
 
         res = es.search(index=index_name, body={"query": {"bool": {"should": query_list}}})
+        res = [doc['_source'] for doc in res['hits']['hits'] if isinstance(res['hits']['hits'], list)]
         pprint(res)
         return jsonify(res)
 
-    elif request.method == 'POST' and body:
-        pprint(body)
-        name_id = get_id(es, body['name'], index_name)
-        print(name_id)
-        if name_id == False:
-            try:
-                post_outcome = es.index(index=index_name, doc_type='contacts', body=body)
-                return "Post Successfull"
-            except Exception as ex:
-                print('Error in indexing data')
-                print(str(ex))
-                return 'Something went wrong, exception thrown, POST aborted'
+    elif request.method == 'POST':
+        if body is not None:
+            pprint(body)
+            temp_name = {'name': body['name']}
+            name_id, name = get_id(es, temp_name, index_name)
+            if name_id == False:
+                try:
+                    es.index(index=index_name, doc_type='contact', body=body)
+                    return f"Post Successfull.  A record for {name} has been created"
+                except Exception as ex:
+                    print('Error in indexing data')
+                    print(str(ex))
+                    return f'Something went wrong, exception thrown. POST aborted, {name} already exists'
+            else:
+                return f'Name unavailable. POST aborted, {name} already exists'
         else:
-            return 'Name unavailable, POST aborted'
+            return 'No JSON body included'
 
     elif request.method == 'PUT':
-        if body and param_dict['name']:
-            name = param_dict['name']
-            name_id = get_id(es, name, index_name)
-            print('made it here')
+        print('here')
+        if body and len(param_dict.items()) != 0:
+            pprint(body)
+            name_id, name= get_id(es, param_dict, index_name)
             if name_id:
                 try:
-                    res = es.update(index=index_name, doc_type='contacts', id=name_id, body={"doc": body})
+                    res = es.update(index=index_name, doc_type='contact', id=name_id, body={"doc": body})
                     return f'Successfully updated {name}'
                 except Exception as ex:
                     print(str(ex))
-                    return 'Something went wrong, exception thrown, PUT aborted'
+                    return f'Something went wrong, exception thrown. PUT aborted, {name} has not been updated'
             else:
-                return 'No entry by that name exists, PUT aborted'
-            return res
+                return f'No entry by that name exists. PUT aborted, {name} has not been updated'
+            # return jsonify(res['hits']['hits'])
         else:
-            return 'You must pass a name and an updated document when passing a PUT call.'
+            return f'You must pass a name and an updated document when passing a PUT call. PUT aborted'
 
 
     elif request.method == 'DELETE':
-        if param_dict['name']:
-            name = param_dict['name']
-            name_id = get_id(es, name, index_name)
+        if len(param_dict.items()) != 0:
+            name_id, name= get_id(es, param_dict, index_name)
             if name_id:
                 try:
-                    es.delete(index=index_name, doc_type='contacts', id=name_id)
+                    es.delete(index=index_name, doc_type='contact', id=name_id)
                     return f'Successfully deleted {name}'
                 except Exception as ex:
                     print(str(ex))
-                    return 'Something went wrong, exception thrown, DELETE aborted'  
+                    return f'Something went wrong, exception thrown. DELETE aborted, {name} has not been deleted'  
             else:
-                return 'No entry by that name exists, DELETE aborted'
+                return f'No entry by that name exists. DELETE aborted, {name} has not been deleted'
         else:
-            return 'You must pass a name when passing a DELETE call'
+            return f'You must pass a name when passing a DELETE call. DELETE aborted, {name} has not been deleted'
 
 
 
